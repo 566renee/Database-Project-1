@@ -1,41 +1,581 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="stylesheet.css">
-  <title>DB Project 1 new</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UserHub | Database Project 1</title>
+
+    <style>
+        :root {
+            --primary: #635BDB;
+            --primary-dark: #4F46C7;
+            --background: #F7F8FC;
+            --surface: #FFFFFF;
+            --text: #24243A;
+            --muted: #74788C;
+            --border: #E6E7EF;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        nav {
+            display: flex;
+            gap: 22px;
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 35px 22px 70px;
+        }
+
+        .welcome {
+            margin-bottom: 32px;
+        }
+
+        .welcome h1 {
+            font-size: 31px;
+            margin-bottom: 8px;
+        }
+
+        .welcome p, .subtitle {
+            color: var(--muted);
+            margin-top: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 27px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 18px rgba(30,30,70,0.03);
+        }
+
+        .card h2 {
+            font-size: 21px;
+            margin: 0 0 6px;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin: 0 0 14px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 13px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: var(--text);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99,91,219,0.10);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .full-button {
+            width: 100%;
+        }
+
+        .section-heading {
+            margin: 20px 0;
+        }
+
+        .section-heading h2 {
+            margin-bottom: 5px;
+        }
+
+        .search-card {
+            margin-bottom: 0;
+        }
+
+        .search-card p {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 17px;
+        }
+
+        .search-card button {
+            margin-top: 5px;
+        }
+
+        .message {
+            font-size: 13px;
+            margin: 12px 0 0;
+            min-height: 20px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #F2F1FC;
+            color: #49458C;
+            text-align: left;
+            padding: 13px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr:hover {
+            background: #FAFAFF;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 35px;
+            color: var(--muted);
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 18px 22px;
+            }
+
+            .welcome h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <main>
-      <label>Name:</label>
-      <input type="text" id="name-input">
-      <button id="add-name-btn">Add Name</button>
- 
-     <br><br><br>
-     <div> 
-        <input placeholder="search by name" id="search-input">
-        <button id="search-btn">Search</button>
-     </div>
 
+    <!-- HEADER -->
+    <header>
+        <div class="logo">UserHub</div>
 
-     <table id="table">
-         <thead>
-             <th>Id</th>
-             <th>Name</th>
-             <th>Date Added</th>
-             <th>Delete</th>
-             <th>Edit</th>  
-         </thead>
-         <tbody></tbody>
-     </table>
+        <nav>
+            <a href="#register">Register</a>
+            <a href="#login">Sign In</a>
+            <a href="#search">Search Users</a>
+            <a href="#results">Results</a>
+        </nav>
+    </header>
 
-     <section hidden id="update-row">
-         <label>Name:</label>
-         <input type="text" id="update-name-input">
-         <button id="update-row-btn" value="">Update</button>
-    </section>
-</main>
+    <main class="container">
+
+        <!-- WELCOME -->
+        <section class="welcome">
+            <h1>User Management Dashboard</h1>
+            <p>
+                Register accounts, securely sign in, and explore
+                user records with database searches.
+            </p>
+        </section>
+
+        <!-- REGISTRATION AND LOGIN -->
+        <div class="grid">
+
+            <!-- REGISTRATION -->
+            <section class="card" id="register">
+                <h2>Create an Account</h2>
+                <p class="subtitle">
+                    Enter your information to register.
+                </p>
+
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username"
+                           placeholder="Choose a username"
+                           autocomplete="username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password"
+                           placeholder="Create a password"
+                           autocomplete="new-password" required>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="reg-firstname">First Name</label>
+                        <input type="text" id="reg-firstname"
+                               placeholder="First name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-lastname">Last Name</label>
+                        <input type="text" id="reg-lastname"
+                               placeholder="Last name" required>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="reg-salary">Salary</label>
+                        <input type="number" id="reg-salary"
+                               placeholder="50000"
+                               min="0" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reg-age">Age</label>
+                        <input type="number" id="reg-age"
+                               placeholder="25"
+                               min="0" step="1">
+                    </div>
+                </div>
+
+                <button type="button" id="register-btn"
+                        class="full-button">
+                    Create Account
+                </button>
+
+                <p id="register-message" class="message"
+                   role="status" aria-live="polite"></p>
+            </section>
+
+            <!-- SIGN IN -->
+            <section class="card" id="login">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">
+                    Sign in to your existing account.
+                </p>
+
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username"
+                           placeholder="Enter username"
+                           autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password"
+                           placeholder="Enter password"
+                           autocomplete="current-password">
+                </div>
+
+                <button type="button" id="login-btn"
+                        class="full-button">
+                    Sign In
+                </button>
+
+                <p id="login-message" class="message"
+                   role="status" aria-live="polite"></p>
+            </section>
+
+        </div>
+
+        <!-- SEARCH SECTION -->
+        <section id="search" class="section-heading">
+            <h2>Search Users</h2>
+            <p class="subtitle">
+                Explore the database using different search filters.
+            </p>
+        </section>
+
+        <div class="grid">
+
+            <!-- SEARCH 1: NAME -->
+            <section class="card search-card">
+                <h3>Search by Name</h3>
+                <p>Find users by first name, last name, or both.</p>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="search-firstname">First Name</label>
+                        <input type="text" id="search-firstname"
+                               placeholder="First name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="search-lastname">Last Name</label>
+                        <input type="text" id="search-lastname"
+                               placeholder="Last name">
+                    </div>
+                </div>
+
+                <button type="button" id="search-name-btn">
+                    Search by Name
+                </button>
+            </section>
+
+            <!-- SEARCH 2: USER ID -->
+            <section class="card search-card">
+                <h3>Search by User ID</h3>
+                <p>Find a specific user using their username.</p>
+
+                <div class="form-group">
+                    <label for="search-username">Username / User ID</label>
+                    <input type="text" id="search-username"
+                           placeholder="e.g. john">
+                </div>
+
+                <button type="button" id="search-id-btn">
+                    Find User
+                </button>
+            </section>
+
+            <!-- SEARCH 3: SALARY RANGE -->
+            <section class="card search-card">
+                <h3>Search by Salary Range</h3>
+                <p>Find users whose salaries fall between two values.</p>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="salary-min">Minimum Salary</label>
+                        <input type="number" id="salary-min"
+                               min="0" step="0.01"
+                               placeholder="30000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="salary-max">Maximum Salary</label>
+                        <input type="number" id="salary-max"
+                               min="0" step="0.01"
+                               placeholder="80000">
+                    </div>
+                </div>
+
+                <button type="button" id="search-salary-btn">
+                    Search Salaries
+                </button>
+            </section>
+
+            <!-- SEARCH 4: AGE RANGE -->
+            <section class="card search-card">
+                <h3>Search by Age Range</h3>
+                <p>Find users between a minimum and maximum age.</p>
+
+                <div class="input-row">
+                    <div class="form-group">
+                        <label for="age-min">Minimum Age</label>
+                        <input type="number" id="age-min"
+                               min="0" step="1"
+                               placeholder="18">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age-max">Maximum Age</label>
+                        <input type="number" id="age-max"
+                               min="0" step="1"
+                               placeholder="35">
+                    </div>
+                </div>
+
+                <button type="button" id="search-age-btn">
+                    Search Ages
+                </button>
+            </section>
+
+            <!-- SEARCH 5: REGISTERED AFTER USER -->
+            <section class="card search-card">
+                <h3>Registered After a User</h3>
+                <p>
+                    Find users who registered after a specific user.
+                </p>
+
+                <div class="form-group">
+                    <label for="after-username">Reference Username</label>
+                    <input type="text" id="after-username"
+                           placeholder="e.g. john">
+                </div>
+
+                <button type="button" id="search-after-btn">
+                    Find Users
+                </button>
+            </section>
+
+            <!-- SEARCH 6: NEVER SIGNED IN -->
+            <section class="card search-card">
+                <h3>Users Who Never Signed In</h3>
+                <p>
+                    Find registered users with no recorded sign-in.
+                </p>
+
+                <button type="button" id="search-never-btn">
+                    Show Never Signed In
+                </button>
+            </section>
+
+            <!-- SEARCH 7: SAME REGISTRATION DAY -->
+            <section class="card search-card">
+                <h3>Same Registration Day</h3>
+                <p>
+                    Find users who registered on the same day
+                    as a specific user.
+                </p>
+
+                <div class="form-group">
+                    <label for="same-day-username">
+                        Reference Username
+                    </label>
+                    <input type="text" id="same-day-username"
+                           placeholder="e.g. john">
+                </div>
+
+                <button type="button" id="search-same-day-btn">
+                    Find Users
+                </button>
+            </section>
+
+            <!-- SEARCH 8: REGISTERED TODAY -->
+            <section class="card search-card">
+                <h3>Users Registered Today</h3>
+                <p>
+                    View all users who created an account today.
+                </p>
+
+                <button type="button" id="search-today-btn">
+                    Show Today's Registrations
+                </button>
+            </section>
+
+        </div>
+
+        <!-- RESULTS TABLE -->
+        <section class="card" id="results">
+            <h2>Search Results</h2>
+            <p class="subtitle" id="results-description">
+                Results from your selected search will appear here.
+            </p>
+
+            <p id="search-message" class="message"
+               role="status" aria-live="polite"></p>
+
+            <div class="table-wrapper">
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Salary</th>
+                            <th>Age</th>
+                            <th>Registered</th>
+                            <th>Last Sign-In</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="users-table-body">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                No search results to display yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        Database Project 1 | User Management System
+    </footer>
+
 <script src="index.js"></script>
 </body>
 </html>

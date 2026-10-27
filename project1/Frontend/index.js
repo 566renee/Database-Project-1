@@ -1,292 +1,439 @@
 
-// This is the frontEnd that modifies the HTML page directly
-// event-based programming,such as document load, click a button
+const API_BASE = "http://localhost:5050";
 
-/*
-What is a Promise in Javascript? 
+// Get an input value
+function getValue(id) {
+    return document.getElementById(id).value.trim();
+}
 
-A Promise can be in one of three states:
+// Display a success or error message
+function showMessage(id, message, isError = false) {
+    const element = document.getElementById(id);
+    element.textContent = message;
+    element.style.color = isError ? "#DC3545" : "#198754";
+}
 
-    - Pending: The initial state; the promise is neither fulfilled nor rejected.
+// Send a request to the backend
+async function apiRequest(endpoint, options = {}) {
+    const response = await fetch(API_BASE + endpoint, options);
 
-    - Fulfilled: The operation completed successfully, and the promise has a 
-      resulting value.
+    const result = await response.json().catch(() => null);
 
-    - Rejected: The operation failed, and the promise has a reason for the failure.
+    if (!result) {
+        throw new Error("The server did not return valid JSON.");
+    }
 
-Promises have two main methods: then and catch.
+    if (!response.ok || result.success === false) {
+        throw new Error(
+            result.message || result.error || "Request failed."
+        );
+    }
 
-    - The then method is used to handle the successful fulfillment of a promise. 
-    It takes a callback function that will be called when the promise is resolved, 
-    and it receives the resulting value.
+    return result;
+}
 
-    - The catch method is used to handle the rejection of a promise. It takes a 
-    callback function that will be called when the promise is rejected, and it 
-    receives the reason for the rejection.
-
-What is a promise chain? 
-    The Promise chain starts with some asyncOperation1(), which returns a promise, 
-    and each subsequent ``then`` is used to handle the result of the previous Promise.
-
-    The catch is used at the end to catch any errors that might occur at any point 
-    in the chain.
-
-    Each then returns a new Promise, allowing you to chain additional ``then`` calls to 
-    handle subsequent results.
-
-What is an arrow function?
-
-    An arrow function in JavaScript is a concise way to write anonymous function 
-    expressions.
-
-    Traditional function syntax: 
-        const add = function(x, y) {
-           return x + y;
-        };
-
-    Arrow function syntax:
-        const add = (x, y) => x + y;
-    
-    
-Arrow functions have a few notable features:
-
-    - Shorter Syntax: Arrow functions eliminate the need for the function keyword, 
-      curly braces {}, and the return keyword in certain cases, making the syntax 
-      more concise.
-
-    - Implicit Return: If the arrow function consists of a single expression, it is 
-      implicitly returned without needing the return keyword.
-
-    - Lexical this: Arrow functions do not have their own this context; instead, they 
-      inherit this from the surrounding code. This can be beneficial in certain situations,
-      especially when dealing with callbacks and event handlers.
-*/
-
-
-// fetch call is to call the backend
-document.addEventListener('DOMContentLoaded', function() {
-    // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAll')     
-    .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
-});
-
-
-// when the addBtn is clicked
-const addBtn = document.querySelector('#add-name-btn');
-addBtn.onclick = function (){
-    const nameInput = document.querySelector('#name-input');
-    const name = nameInput.value;
-    nameInput.value = "";
-
-    fetch('http://localhost:5050/insert', {
+// Create options for POST requests
+function postOptions(data) {
+    return {
+        method: "POST",
         headers: {
-            'Content-type': 'application/json'
+            "Content-Type": "application/json"
         },
-        method: 'POST',
-        body: JSON.stringify({name: name})
-    })
-    .then(response => response.json())
-    .then(data => insertRowIntoTable(data['data']));
+        body: JSON.stringify(data)
+    };
 }
 
-// when the searchBtn is clicked
-const searchBtn =  document.querySelector('#search-btn');
-searchBtn.onclick = function (){
-    const searchInput = document.querySelector('#search-input');
-    const searchValue = searchInput.value;
-    searchInput.value = "";
+// ============================================
+// 1. USER REGISTRATION
+// ============================================
 
-    fetch('http://localhost:5050/search/' + searchValue)
-    .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
-}
+document.getElementById("register-btn").addEventListener(
+    "click",
+    async function () {
+        try {
+            const username = getValue("reg-username");
+            const password =
+                document.getElementById("reg-password").value;
+            const firstname = getValue("reg-firstname");
+            const lastname = getValue("reg-lastname");
+            const salaryInput = getValue("reg-salary");
+            const ageInput = getValue("reg-age");
 
-let rowToDelete; 
+            if (!username || !password || !firstname || !lastname) {
+                throw new Error("Please fill in all required fields.");
+            }
 
-// when the delete button is clicked, since it is not part of the DOM tree, we need to do it differently
-document.querySelector('table tbody').addEventListener('click', 
-      function(event){
-        if(event.target.className === "delete-row-btn"){
+            const salary = salaryInput === ""
+                ? null : Number(salaryInput);
+            const age = ageInput === ""
+                ? null : Number(ageInput);
 
-            deleteRowById(event.target.dataset.id);   
-            rowToDelete = event.target.parentNode.parentNode.rowIndex;    
-            debug("delete which one:");
-            debug(rowToDelete);
-        }   
-        if(event.target.className === "edit-row-btn"){
-            showEditRowInterface(event.target.dataset.id); // display the edit row interface
+            if (salary !== null &&
+                (!Number.isFinite(salary) || salary < 0)) {
+                throw new Error("Enter a valid salary.");
+            }
+
+            if (age !== null &&
+                (!Number.isInteger(age) || age < 0)) {
+                throw new Error("Enter a valid age.");
+            }
+
+            const result = await apiRequest(
+                "/register",
+                postOptions({
+                    username,
+                    password,
+                    firstname,
+                    lastname,
+                    salary,
+                    age
+                })
+            );
+
+            showMessage(
+                "register-message",
+                result.message || "Account created successfully!"
+            );
+
+            document.getElementById("reg-password").value = "";
+
+        } catch (error) {
+            showMessage("register-message", error.message, true);
         }
-      }
+    }
 );
 
-function deleteRowById(id){
-    // debug(id);
-    fetch('http://localhost:5050/delete/' + id,
-       { 
-        method: 'DELETE'
-       }
-    )
-    .then(response => response.json())
-    .then(
-         data => {
-             if(data.success){
-                document.getElementById("table").deleteRow(rowToDelete);
-                // location.reload();
-             }
-         }
-    );
-}
+// ============================================
+// 2. USER SIGN-IN
+// ============================================
 
-let idToUpdate = 0;
+document.getElementById("login-btn").addEventListener(
+    "click",
+    async function () {
+        try {
+            const username = getValue("login-username");
+            const password =
+                document.getElementById("login-password").value;
 
-function showEditRowInterface(id){
-    debug("id clicked: ");
-    debug(id);
-    document.querySelector('#update-name-input').value = ""; // clear this field
-    const updateSetction = document.querySelector("#update-row");  
-    updateSetction.hidden = false;
-    // we assign the id to the update button as its id attribute value
-    idToUpdate = id;
-    debug("id set!");
-    debug(idToUpdate+"");
-}
-
-
-// when the update button on the update interface is clicked
-const updateBtn = document.querySelector('#update-row-btn');
-
-updateBtn.onclick = function(){
-    debug("update clicked");
-    debug("got the id: ");
-    debug(updateBtn.value);
-    
-    const updatedNameInput = document.querySelector('#update-name-input');
-
-    fetch('http://localhost:5050/update',
-          {
-            headers: {
-                'Content-type': 'application/json'
-            },
-            method: 'PATCH',
-            body: JSON.stringify(
-                  {
-                    id: idToUpdate,
-                    name: updatedNameInput.value
-                  }
-            )
-          }
-    ) 
-    .then(response => response.json())
-    .then(data => {
-        if(data.success){
-            location.reload();
-        }
-        else 
-           debug("no update occurs");
-    })
-}
-
-
-// this function is used for debugging only, and should be deleted afterwards
-function debug(data)
-{
-    fetch('http://localhost:5050/debug', {
-        headers: {
-            'Content-type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({debug: data})
-    })
-}
-
-function insertRowIntoTable(data){
-
-   debug("index.js: insertRowIntoTable called: ");
-   debug(data);
-
-   const table = document.querySelector('table tbody');
-   debug(table);
-
-   const isTableData = table.querySelector('.no-data');
-
-  // debug(isTableData);
-
-   let tableHtml = "<tr>";
-   
-   for(var key in data){ // iterating over the each property key of an object data
-      if(data.hasOwnProperty(key)){   // key is a direct property for data
-            if(key === 'dateAdded'){  // the property is 'dataAdded'
-                data[key] = new Date(data[key]).toLocaleString(); // format to javascript string
+            if (!username || !password) {
+                throw new Error("Enter your username and password.");
             }
-            tableHtml += `<td>${data[key]}</td>`;
-      }
-   }
 
-   tableHtml +=`<td><button class="delete-row-btn" data-id=${data.id}>Delete</td>`;
-   tableHtml += `<td><button class="edit-row-btn" data-id=${data.id}>Edit</td>`;
+            const result = await apiRequest(
+                "/login",
+                postOptions({ username, password })
+            );
 
-   tableHtml += "</tr>";
+            showMessage(
+                "login-message",
+                result.message || "Signed in successfully!"
+            );
 
-    if(isTableData){
-       debug("case 1");
-       table.innerHTML = tableHtml;
+            document.getElementById("login-password").value = "";
+
+        } catch (error) {
+            showMessage("login-message", error.message, true);
+        }
     }
-    else {
-        debug("case 2");
-        // debug(tableHtml);
+);
 
-        const newrow = table.insertRow();
-        newrow.innerHTML = tableHtml;
-    }
+// ============================================
+// DISPLAY DATABASE SEARCH RESULTS
+// ============================================
+
+function formatDate(value) {
+    if (!value) return "Never";
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? String(value)
+        : date.toLocaleString();
 }
 
-function loadHTMLTable(data){
-    debug("index.js: loadHTMLTable called.");
+function formatSalary(value) {
+    if (value === null || value === undefined) return "—";
 
-    const table = document.querySelector('table tbody'); 
-    
-    if(data.length === 0){
-        table.innerHTML = "<tr><td class='no-data' colspan='5'>No Data</td></tr>";
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD"
+    }).format(Number(value));
+}
+
+function displayUsers(users) {
+    const tbody = document.getElementById("users-table-body");
+
+    // Clear previous results
+    tbody.replaceChildren();
+
+    if (users.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 7;
+        cell.className = "empty-state";
+        cell.textContent = "No matching users found.";
+
+        row.appendChild(cell);
+        tbody.appendChild(row);
         return;
     }
-  
-    /*
-    In the following JavaScript code, the forEach method is used to iterate over the 
-    elements of the data array. The forEach method is a higher-order function 
-    that takes a callback function as its argument. The callback function is 
-    executed once for each element in the array.
-    
-    In this case, the callback function takes a single argument, which is an object 
-    destructuring pattern:
 
+    users.forEach(user => {
+        const row = document.createElement("tr");
 
-    function ({id, name, date_added}) {
-        // ... code inside the callback function
-    }
+        const columns = [
+            user.username ?? "—",
+            user.firstname ?? "—",
+            user.lastname ?? "—",
+            formatSalary(user.salary),
+            user.age ?? "—",
+            formatDate(user.registerday),
+            formatDate(user.signintime)
+        ];
 
-    This pattern is used to extract the id, name, and date_added properties from each 
-    element of the data array. The callback function is then executed for each element
-    in the array, and within the function, you can access these properties directly 
-    as variables (id, name, and date_added).
+        columns.forEach(value => {
+            const cell = document.createElement("td");
+            cell.textContent = String(value);
+            row.appendChild(cell);
+        });
 
-    
-    In summary, the forEach method is a convenient way to iterate over each element in 
-    an array and perform some operation or execute a function for each element. 
-    The provided callback function is what gets executed for each element in the 
-    data array.
-    */
-
-    let tableHtml = "";
-    data.forEach(function ({id, name, date_added}){
-         tableHtml += "<tr>";
-         tableHtml +=`<td>${id}</td>`;
-         tableHtml +=`<td>${name}</td>`;
-         tableHtml +=`<td>${new Date(date_added).toLocaleString()}</td>`;
-         tableHtml +=`<td><button class="delete-row-btn" data-id=${id}>Delete</td>`;
-         tableHtml += `<td><button class="edit-row-btn" data-id=${id}>Edit</td>`;
-         tableHtml += "</tr>";
+        tbody.appendChild(row);
     });
-
-    table.innerHTML = tableHtml;
 }
+
+// ============================================
+// GENERIC SEARCH FUNCTION
+// ============================================
+
+async function searchUsers(endpoint, params = {}, description = "") {
+    try {
+        const query = new URLSearchParams(params).toString();
+        const url = endpoint + (query ? "?" + query : "");
+
+        showMessage("search-message", "Searching...");
+
+        const result = await apiRequest(url);
+
+        // Accept a JSON array or { data: [...] }
+        const users = Array.isArray(result)
+            ? result
+            : result.data;
+
+        if (!Array.isArray(users)) {
+            throw new Error("Unexpected search response from server.");
+        }
+
+        displayUsers(users);
+
+        document.getElementById(
+            "results-description"
+        ).textContent = description;
+
+        showMessage(
+            "search-message",
+            `${users.length} user(s) found.`
+        );
+
+        document.getElementById("results").scrollIntoView({
+            behavior: "smooth"
+        });
+
+    } catch (error) {
+        showMessage("search-message", error.message, true);
+        document.getElementById("results").scrollIntoView({
+            behavior: "smooth"
+        });
+    }
+}
+
+// ============================================
+// 3. SEARCH BY FIRST AND/OR LAST NAME
+// ============================================
+
+document.getElementById("search-name-btn").addEventListener(
+    "click",
+    function () {
+        const firstname = getValue("search-firstname");
+        const lastname = getValue("search-lastname");
+
+        if (!firstname && !lastname) {
+            showMessage(
+                "search-message",
+                "Enter a first name or last name.",
+                true
+            );
+            return;
+        }
+
+        searchUsers(
+            "/users/search/name",
+            { firstname, lastname },
+            "Results for name search"
+        );
+    }
+);
+
+// ============================================
+// 4. SEARCH BY USER ID
+// ============================================
+
+document.getElementById("search-id-btn").addEventListener(
+    "click",
+    function () {
+        const username = getValue("search-username");
+
+        if (!username) {
+            showMessage(
+                "search-message", "Enter a username.", true
+            );
+            return;
+        }
+
+        searchUsers(
+            "/users/search/id",
+            { username },
+            "Results for username: " + username
+        );
+    }
+);
+
+// ============================================
+// 5. SEARCH BY SALARY RANGE
+// ============================================
+
+document.getElementById("search-salary-btn").addEventListener(
+    "click",
+    function () {
+        const min = getValue("salary-min");
+        const max = getValue("salary-max");
+
+        if (min === "" || max === "" ||
+            !Number.isFinite(Number(min)) ||
+            !Number.isFinite(Number(max)) ||
+            Number(min) < 0 ||
+            Number(min) > Number(max)) {
+            showMessage(
+                "search-message",
+                "Enter a valid minimum and maximum salary.",
+                true
+            );
+            return;
+        }
+
+        searchUsers(
+            "/users/search/salary",
+            { min, max },
+            `Users with salaries from $${min} to $${max}`
+        );
+    }
+);
+
+// ============================================
+// 6. SEARCH BY AGE RANGE
+// ============================================
+
+document.getElementById("search-age-btn").addEventListener(
+    "click",
+    function () {
+        const min = getValue("age-min");
+        const max = getValue("age-max");
+
+        if (min === "" || max === "" ||
+            !Number.isInteger(Number(min)) ||
+            !Number.isInteger(Number(max)) ||
+            Number(min) < 0 ||
+            Number(min) > Number(max)) {
+            showMessage(
+                "search-message",
+                "Enter a valid minimum and maximum age.",
+                true
+            );
+            return;
+        }
+
+        searchUsers(
+            "/users/search/age",
+            { min, max },
+            `Users between ages ${min} and ${max}`
+        );
+    }
+);
+
+// ============================================
+// 7. REGISTERED AFTER ANOTHER USER
+// ============================================
+
+document.getElementById("search-after-btn").addEventListener(
+    "click",
+    function () {
+        const username = getValue("after-username");
+
+        if (!username) {
+            showMessage(
+                "search-message", "Enter a username.", true
+            );
+            return;
+        }
+
+        searchUsers(
+            "/users/search/after",
+            { username },
+            `Users registered after ${username}`
+        );
+    }
+);
+
+// ============================================
+// 8. USERS WHO NEVER SIGNED IN
+// ============================================
+
+document.getElementById("search-never-btn").addEventListener(
+    "click",
+    function () {
+        searchUsers(
+            "/users/search/never-signed-in",
+            {},
+            "Users who have never signed in"
+        );
+    }
+);
+
+// ============================================
+// 9. SAME REGISTRATION DAY
+// ============================================
+
+document.getElementById("search-same-day-btn").addEventListener(
+    "click",
+    function () {
+        const username = getValue("same-day-username");
+
+        if (!username) {
+            showMessage(
+                "search-message", "Enter a username.", true
+            );
+            return;
+        }
+
+        searchUsers(
+            "/users/search/same-day",
+            { username },
+            `Users registered on the same day as ${username}`
+        );
+    }
+);
+
+// ============================================
+// 10. USERS REGISTERED TODAY
+// ============================================
+
+document.getElementById("search-today-btn").addEventListener(
+    "click",
+    function () {
+        searchUsers(
+            "/users/search/today",
+            {},
+            "Users registered today"
+        );
+    }
+);
