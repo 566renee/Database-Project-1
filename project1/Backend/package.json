@@ -1,16 +1,24 @@
+
 {
-  "name": "backend",
+  "name": "database-project-1-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Node.js and MySQL backend for user registration, login, and search",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"No tests configured yet\""
   },
-  "keywords": [],
+  "keywords": [
+    "nodejs",
+    "express",
+    "mysql",
+    "authentication"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",

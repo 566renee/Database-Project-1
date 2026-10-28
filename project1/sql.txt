@@ -1,0 +1,98 @@
+
+-- Database Project 1
+-- SQL statements for user management
+
+CREATE DATABASE IF NOT EXISTS web_app;
+USE web_app;
+
+-- Create user table
+CREATE TABLE IF NOT EXISTS names (
+    username VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    firstname VARCHAR(50),
+    lastname VARCHAR(50),
+    salary DECIMAL(10,2),
+    age INT,
+    registerday DATE DEFAULT (CURRENT_DATE),
+    signintime DATETIME NULL
+);
+
+-- 1. Registration
+-- The backend generates a bcrypt password hash.
+INSERT INTO names
+(username, password, firstname, lastname,
+ salary, age, registerday, signintime)
+VALUES (?, ?, ?, ?, ?, ?, CURDATE(), NULL);
+
+-- 2. Sign-in: retrieve password hash
+SELECT username, password
+FROM names
+WHERE username = ?;
+
+-- Record successful sign-in
+UPDATE names
+SET signintime = NOW()
+WHERE username = ?;
+
+-- 3. Search by first and/or last name
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE firstname LIKE ?
+  AND lastname LIKE ?;
+
+-- 4. Search by user ID
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE username = ?;
+
+-- 5. Search by salary range
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE salary BETWEEN ? AND ?;
+
+-- 6. Search by age range
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE age BETWEEN ? AND ?;
+
+-- 7. Registered after another user
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE registerday > (
+    SELECT registerday
+    FROM (
+        SELECT registerday
+        FROM names
+        WHERE username = ?
+    ) AS reference_user
+);
+
+-- 8. Never signed in
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE signintime IS NULL;
+
+-- 9. Registered on the same day
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE registerday = (
+    SELECT registerday
+    FROM (
+        SELECT registerday
+        FROM names
+        WHERE username = ?
+    ) AS reference_user
+);
+
+-- 10. Registered today
+SELECT username, firstname, lastname, salary,
+       age, registerday, signintime
+FROM names
+WHERE registerday = CURDATE();
